@@ -1,4 +1,11 @@
 # AddressAPI
+
+Before running the application:
+Navigate to Pacake Manager Console -> Run the following command to execute the migration script
+
+- add-migration AnyName
+- update-database
+
 The application can be run :
 1) directly from Visual Studio 
       or
