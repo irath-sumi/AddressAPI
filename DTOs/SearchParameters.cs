@@ -1,12 +1,16 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using AddressAPI.Validations;
+using System.ComponentModel.DataAnnotations;
 
 namespace AddressAPI.DTOs
 {
     public class SearchParameters
     {
-        [Required]
         public string? SearchText { get; set; }
-        public string? SortOrder { get; set; } = "ASC";
-        public string? SortColumn { get; set; } 
+
+        [RegularExpression("^(asc|desc)$")]
+        [SortOrderValidation]
+        public string? SortOrder { get; set; }
+        [SortColumnValidation]
+        public string? SortColumn { get; set; }
     }
 }

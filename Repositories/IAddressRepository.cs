@@ -1,13 +1,14 @@
-﻿using AddressAPI.Models;
+﻿using AddressAPI.DTOs;
+using AddressAPI.Models;
 
 namespace AddressAPI.Repositories
 {
     public interface IAddressRepository
     {
-        IQueryable<Address> GetAllAddresses();
-        Task<Address> GetAddressById(int id);
+        Task<List<Address>> GetAllAddresses(SearchParameters searchParameters);
+        Task<Address?> GetAddressById(int id);
         Task AddAddress(List<Address> address);
-        Task UpdateAddress(int id, Address address);
-        Task DeleteAddress(int id);
+        Task<string> UpdateAddress(int id, Address address);
+        Task<Address> DeleteAddress(int id);
     }
 }

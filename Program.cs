@@ -1,16 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
-using AddressAPI.Data;
+﻿using AddressAPI.Data;
 using AddressAPI.Services;
 using AddressAPI.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<AddressAPIContext>();
-//builder.Services.AddDbContext<AddressAPIContext>(options =>
-//    options.UseSqlite(builder.Configuration.GetConnectionString("AddressAPIContext")
-//    ?? throw new InvalidOperationException("Connection string 'AddressAPIContext' not found.")));
-
-
-// options.UseSqlServer(builder.Configuration.GetConnectionString("AddressAPIContext") ?? throw new InvalidOperationException("Connection string 'AddressAPIContext' not found.")));
+builder.Services.AddDbContext<AddressAPIContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("AddressAPIContext")??
+    throw new InvalidOperationException("Connection string 'AddressAPIContext' not found.")));
 
 // Add services to the DI container.
 builder.Services.AddScoped<IAddressService, AddressService>();

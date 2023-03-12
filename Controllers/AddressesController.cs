@@ -23,13 +23,21 @@ namespace AddressAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Address>> GetAddress(int id)
         {
-            var address = await _addressService.GetAddressById(id);
-            if (address == null)
+            try
             {
-                return NotFound();
-            }
+                var address = await _addressService.GetAddressById(id);
+                if (address == null)
+                {
+                    return NotFound();
+                }
 
-            return Ok(address);
+                return Ok(address);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error retrieving data from the database");
+            }
         }
 
         /// <summary>
@@ -40,13 +48,20 @@ namespace AddressAPI.Controllers
         [HttpGet("searchParams")]
         public async Task<ActionResult<Address>> GetAddresses([FromQuery] SearchParameters searchParams)
         {
-            var filteredAddresses = await _addressService.GetAllAddresses(searchParams);
-            if (filteredAddresses == null || filteredAddresses.Any() == false)
+            try
             {
-                return NotFound();
-            }
+                var filteredAddresses = await _addressService.GetAllAddresses(searchParams);
+                if (filteredAddresses == null || filteredAddresses.Any() == false)
+                {
+                    return NotFound();
+                }
 
-            return Ok(filteredAddresses);
+                return Ok(filteredAddresses);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving data from the database");
+            }
         }
 
         /// <summary>
@@ -57,9 +72,17 @@ namespace AddressAPI.Controllers
         [HttpPost("AddNewAddress")]
         public async Task<IActionResult> PostAddress(List<Address> address)
         {
-            await _addressService.AddAddress(address);
+            try
+            {
+                await _addressService.AddAddress(address);
 
-            return CreatedAtAction(nameof(PostAddress), address);
+                return CreatedAtAction(nameof(PostAddress), address);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                   "Error adding new address");
+            }
         }
 
         /// <summary>
@@ -71,14 +94,22 @@ namespace AddressAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutAddress(int id, Address address)
         {
-            if (id != address.Id)
+            try
             {
-                return BadRequest();
+                if (id != address.Id)
+                {
+                    return BadRequest("Address ID mismatch");
+                }
+
+                var addressUpdateResult = await _addressService.UpdateAddress(id, address);
+
+                return CreatedAtAction("GetAddress", "Addresses", new { id = address.Id }, addressUpdateResult);
             }
-
-            await _addressService.UpdateAddress(id, address);
-
-            return NoContent();
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                   "Error updating data");
+            }
         }
 
         /// <summary>
@@ -89,8 +120,20 @@ namespace AddressAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAddress(int id)
         {
-            await _addressService.DeleteAddress(id);
-            return NoContent();
+            try
+            {
+                var addressToDelete = await _addressService.DeleteAddress(id);
+                if (addressToDelete == null)
+                {
+                    return NotFound($"Address with Id = {id} is not found");
+                }
+                return Content("Address removed");
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                  "Error deleting data");
+            }
         }
 
         /// <summary>
@@ -100,7 +143,7 @@ namespace AddressAPI.Controllers
         /// <param name="address2ID">The ID of the second address</param>
         /// <returns>The distance between the addresses in kilometers, or a 400 Bad Request or 404 Not Found response if the addresses are invalid or not in the database</returns>
         [HttpGet("distance")]
-        public async Task<ActionResult<double>> GetDistance(int address1ID, int address2ID)
+        public async Task<IActionResult> GetDistance(int address1ID, int address2ID)
         {
             var distance = await _addressService.GetDistance(address1ID, address2ID);
             if (distance.Equals(default(double)))
@@ -112,7 +155,7 @@ namespace AddressAPI.Controllers
                 return NotFound("Address not in database");
             }
 
-            return Ok(distance + "KM.");
+            return Ok(distance);
 
         }
     }

@@ -5,19 +5,12 @@ namespace AddressAPI.Data
 {
     public class AddressAPIContext : DbContext
     {
-        private readonly IConfiguration _configuration;
-        public AddressAPIContext(DbContextOptions<AddressAPIContext> options, IConfiguration configuration)
-            : base(options)
-        {
-            _configuration = configuration;
-        }
-        protected override void OnConfiguring(DbContextOptionsBuilder options)
-        {
-            var connectionString = _configuration["ConnectionStrings:AddressAPIContext"];
-            // connect to sqlite database
-            options.UseSqlite(connectionString);
-                //@"Data Source=./SQLiteDatabaseFile/AddressAPI.db;");
-        }
+        public AddressAPIContext(DbContextOptions<AddressAPIContext> options)
+             : base(options)
+        { }
+        /*  tells the compiler that the property Addresses may be null, 
+        but the code guarantees that it will not be null at runtime. 
+        Written this to eliminate null reference warning */
         public DbSet<Address> Addresses { get; set; } = default!;
     }
 }

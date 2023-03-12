@@ -2,7 +2,6 @@
 using AddressAPI.Models;
 using AddressAPI.Repositories;
 using GeoCoordinatePortable;
-using Microsoft.EntityFrameworkCore;
 using OpenCage.Geocode;
 using System.Reflection;
 
@@ -31,49 +30,24 @@ namespace AddressAPI.Services
         /// </summary>
         /// <param name="searchParams"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<Address>> GetAllAddresses(SearchParameters searchParams)
+        public async Task<List<Address>> GetAllAddresses(SearchParameters searchParams)
         {
-            var address = _addressRepository.GetAllAddresses();
+            List<Address> addresses = await _addressRepository.GetAllAddresses(searchParams);
 
-            List<Address> filteredAddresses = new List<Address>();
-            int pageSize = 20; // The number of records to return per page
-            int pageNumber = 1; // The current page number
-
-            // Check if searchParams is null. 
-            if (searchParams.SearchText == null && searchParams.SortColumn == null && searchParams.SortOrder == null)
+            if (searchParams.SortColumn != null)
             {
-                // If searchParams is null, return the first page of records without any filtering or sorting
-                // using pagination to improve performance , reduce memory consumption.
-                filteredAddresses = await address.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-
-            }
-
-            // Search
-            if (!string.IsNullOrWhiteSpace(searchParams.SearchText))
-            {
-                filteredAddresses = await address.ToListAsync();
-                filteredAddresses = filteredAddresses.Where(a => a.GetType()
-                                   .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                   .Any(property => (property.PropertyType == typeof(string)) &&
-                                       (!string.IsNullOrWhiteSpace(property.GetValue(a, null).ToString())) &&
-                                       (property.GetValue(a, null).ToString().Contains(searchParams.SearchText) == true))
-                                    ).ToList();
-
-            }
-
-            // Sort
-            if (!string.IsNullOrWhiteSpace(searchParams.SortColumn) && !string.IsNullOrWhiteSpace(searchParams.SortOrder))
-            {
+                // sorting
                 var propertyInfo = typeof(Address).GetProperty(searchParams.SortColumn, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
                 if (propertyInfo != null)
                 {
-                    filteredAddresses = searchParams.SortOrder.ToLower() == "desc"
-                        ? filteredAddresses.OrderByDescending(x => propertyInfo.GetValue(x, null)).ToList()
-                        : filteredAddresses.OrderBy(x => propertyInfo.GetValue(x, null)).ToList();
+                    addresses = searchParams.SortOrder != null ? (searchParams.SortOrder.ToLower() == "desc"
+                        ? addresses.OrderByDescending(x => propertyInfo.GetValue(x, null)).ToList()
+                        : addresses.OrderBy(x => propertyInfo.GetValue(x, null)).ToList())
+                        : addresses.OrderBy(x => propertyInfo.GetValue(x, null)).ToList();
                 }
             }
 
-            return filteredAddresses;
+            return addresses;
         }
         /// <summary>
         /// This method simply calls the GetAddressById method of the repository 
@@ -82,7 +56,7 @@ namespace AddressAPI.Services
         /// <param name="id"></param>
         /// <returns></returns>
 
-        public async Task<Address> GetAddressById(int id)
+        public async Task<Address?> GetAddressById(int id)
         {
             return await _addressRepository.GetAddressById(id);
         }
@@ -102,29 +76,21 @@ namespace AddressAPI.Services
         /// <param name="id"></param>
         /// <param name="address"></param>
         /// <returns></returns>
-        public async Task UpdateAddress(int id, Address address)
+        public async Task<string> UpdateAddress(int id, Address address)
         {
-            await _addressRepository.UpdateAddress(id, address);
+            return await _addressRepository.UpdateAddress(id, address);
         }
         /// <summary>
-        /// This method first checks if an address with the specified ID exists in the database by calling the GetAddressById method of the repository. 
-        /// If the address exists, it calls the DeleteAddress method of the repository. 
+        ///  
         /// 
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
 
-        public async Task DeleteAddress(int id)
+        public async Task<Address> DeleteAddress(int id)
         {
-            var address = await _addressRepository.GetAddressById(id);
-            if (address != null)
-            {
-                await _addressRepository.DeleteAddress(id);
-            }
-
-          //  await _addressRepository.DeleteAddress(id);
-
+            return await _addressRepository.DeleteAddress(id);
         }
         /// <summary>
         ///  This method takes two address IDs as parameters and retrieves the addresses from the repository. 
@@ -138,9 +104,9 @@ namespace AddressAPI.Services
         /// <exception cref="NotImplementedException"></exception>
         public async Task<object> GetDistance(int address1ID, int address2ID)
         {
-            var addressFirst = await _addressRepository.GetAddressById(address1ID);          
+            var addressFirst = await _addressRepository.GetAddressById(address1ID);
             var addressLast = await _addressRepository.GetAddressById(address2ID);
-           
+
             if (addressFirst != null && addressLast != null)
             {
                 string addressFirstAsString = addressFirst.ToString();
@@ -160,14 +126,20 @@ namespace AddressAPI.Services
                 var coordinatesFirstAddress = new GeoCoordinate(responseFirstAddress.Results[0].Geometry.Latitude, responseFirstAddress.Results[0].Geometry.Longitude);
                 var coordinatesSecondAddress = new GeoCoordinate(responseSecondAddress.Results[0].Geometry.Latitude, responseSecondAddress.Results[0].Geometry.Longitude);
 
-                // return distance in kilometers
-                return coordinatesFirstAddress.GetDistanceTo(coordinatesSecondAddress) / 1000.0;
+                var DistanceDTO = new DistanceDTO
+                {
+                    Db_LocationA = addressFirstAsString,
+                    Db_LocationB = addressLastAsString,
+                    Distance = coordinatesFirstAddress.GetDistanceTo(coordinatesSecondAddress) / 1000.0,
+                    Unit_Of_Measure = "KM."
+                };
+                return DistanceDTO;
             }
             else
             {
                 return "NotFoundInDb";
             }
-                
+
         }
     }
 

@@ -7,8 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Migrations\20230307145729_InitialCreate.cs" />
-    <Compile Remove="Migrations\20230307145729_InitialCreate.Designer.cs" />
+    <Compile Remove="DTOs\AddressDTO.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\sunil\.nuget\packages\foolproof.core\1.2.0\contentFiles\any\net6.0\Scripts\mvcfoolproof.core.js" />
+    <Content Remove="C:\Users\sunil\.nuget\packages\foolproof.core\1.2.0\contentFiles\any\net6.0\Scripts\mvcfoolproof.jquery.validation.js" />
+    <Content Remove="C:\Users\sunil\.nuget\packages\foolproof.core\1.2.0\contentFiles\any\net6.0\Scripts\mvcfoolproof.msajax.validation.js" />
+    <Content Remove="C:\Users\sunil\.nuget\packages\foolproof.core\1.2.0\contentFiles\any\net6.0\Scripts\mvcfoolproof.unobtrusive.js" />
   </ItemGroup>
 
   <ItemGroup>
