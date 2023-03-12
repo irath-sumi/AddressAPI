@@ -24,9 +24,6 @@ namespace AddressAPI.Services
         /// the Address class that is of type string. It then checks if the sort column 
         /// and sort order parameters are not null or whitespace, and if so, 
         /// it applies the sorting based on the specified column and order. 
-        /// 
-        /// One potential improvement here could be to implement pagination to limit the number 
-        /// of results returned,especially if the database is expected to contain a large number of records.
         /// </summary>
         /// <param name="searchParams"></param>
         /// <returns></returns>
