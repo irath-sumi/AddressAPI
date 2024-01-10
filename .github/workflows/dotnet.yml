@@ -10,19 +10,17 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 6.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+     my_action_job:
+            runs-on: windows-latest
+            name: A job to run VSTest
+            steps:
+             - name: Download tests binary zip
+               run: powershell Invoke-WebRequest -Uri "https://localworker.blob.core.windows.net/win-x64/tests.zip" -OutFile "./tests.zip"
+             - name: Unzip tests binary
+               run: powershell Expand-Archive -Path tests.zip -DestinationPath ./
+             - name: Run tests
+               uses: microsoft-approved-actions/vstest@master
+               with:
+                testAssembly: AddressAPITests*.dll
+                #searchFolder: ./tests/
+                runInParallel: true
