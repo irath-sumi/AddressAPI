@@ -14,6 +14,11 @@ jobs:
     runs-on: windows-latest
     name: A job to run VSTest
     steps:
+      - name: Use Windows PowerShell
+        uses: actions/setup-powershell@v2
+        with:
+          pwsh: false  # Use Windows PowerShell
+
       - name: Download vstest.console.exe
         run: |
           Invoke-WebRequest -Uri https://aka.ms/vstest16 -OutFile vstest.zip -UseBasicParsing
@@ -23,10 +28,12 @@ jobs:
           if (-not (Test-Path $vstestPath)) { New-Item -ItemType Directory -Path $vstestPath }
           Move-Item vstest\* $vstestPath -Force
           Remove-Item -Recurse -Force vstest
+
       - name: Run Tests
         run: |
           $testPath = Get-ChildItem platform\Autofox.Transport.Platform.CoreTests\bin\Release\Autofox.Transport.Platform.CoreTests.dll -Recurse | Select-Object -ExpandProperty FullName
           $vstestPath = "$env:ProgramFiles(x86)\Microsoft Visual Studio\2022\Professional\Common7\IDE\Extensions\TestPlatform\vstest.console.exe"
           & $vstestPath $testPath
+
 
 
