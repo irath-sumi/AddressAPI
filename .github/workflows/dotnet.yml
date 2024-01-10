@@ -14,13 +14,11 @@ jobs:
             runs-on: windows-latest
             name: A job to run VSTest
             steps:
-             - name: Download tests binary zip
-               run: powershell Invoke-WebRequest -Uri "https://localworker.blob.core.windows.net/win-x64/tests.zip" -OutFile "./tests.zip"
-             - name: Unzip tests binary
-               run: powershell Expand-Archive -Path tests.zip -DestinationPath ./
-             - name: Run tests
-               uses: microsoft-approved-actions/vstest@master
-               with:
-                testAssembly: AddressAPITests*.dll
-                #searchFolder: ./tests/
-                runInParallel: true
+             - name: Download vstest.console.exe
+               run: |
+                  Invoke-WebRequest -Uri https://aka.ms/vstest16 -OutFile vstest.zip
+                  Expand-Archive -Path vstest.zip -DestinationPath "$env:ProgramFiles(x86)\Microsoft Visual Studio\2022\Professional\Common7\IDE\Extensions\TestPlatform"
+                  Remove-Item vstest.zip
+
+             - name: Run Tests
+               run: $env:ProgramFiles(x86)\Microsoft Visual Studio\2022\Professional\Common7\IDE\Extensions\TestPlatform\vstest.console.exe platform\Autofox.Transport.Platform.CoreTests\bin\Release\Autofox.Transport.Platform.CoreTests.dll
