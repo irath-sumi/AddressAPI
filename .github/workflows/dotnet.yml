@@ -5,20 +5,22 @@ name: .NET
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
-     my_action_job:
-            runs-on: windows-latest
-            name: A job to run VSTest
-            steps:
-             - name: Download vstest.console.exe
-               run: |
-                  Invoke-WebRequest -Uri https://aka.ms/vstest16 -OutFile vstest.zip
-                  Expand-Archive -Path vstest.zip -DestinationPath "$env:ProgramFiles(x86)\Microsoft Visual Studio\2022\Professional\Common7\IDE\Extensions\TestPlatform"
-                  Remove-Item vstest.zip
-
-             - name: Run Tests
-               run: $env:ProgramFiles(x86)\Microsoft Visual Studio\2022\Professional\Common7\IDE\Extensions\TestPlatform\vstest.console.exe platform\Autofox.Transport.Platform.CoreTests\bin\Release\Autofox.Transport.Platform.CoreTests.dll
+  my_action_job:
+    runs-on: windows-latest
+    name: A job to run VSTest
+    steps:
+      - name: Download vstest.console.exe
+        run: |
+          Invoke-WebRequest -Uri https://aka.ms/vstest16 -OutFile vstest.zip -UseBasicParsing
+          Expand-Archive -Path vstest.zip -DestinationPath "$env:ProgramFiles(x86)\Microsoft Visual Studio\2022\Professional\Common7\IDE\Extensions\TestPlatform"
+          Remove-Item vstest.zip
+      - name: Run Tests
+        run: |
+          $testPath = Get-ChildItem platform\Autofox.Transport.Platform.CoreTests\bin\Release\Autofox.Transport.Platform.CoreTests.dll -Recurse | Select-Object -ExpandProperty FullName
+          $vstestPath = "$env:ProgramFiles(x86)\Microsoft Visual Studio\2022\Professional\Common7\IDE\Extensions\TestPlatform\vstest.console.exe"
+          & $vstestPath $testPath
